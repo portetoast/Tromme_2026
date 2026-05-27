@@ -1,29 +1,11 @@
-###############################################################################
-# ADDING ECOSYSTEM DATA TO SPECIES OCCURRENCE COORDINATES
-# Example workflow:
-# - read an ecosystem raster
-# - crop it to Switzerland
-# - extract ecosystem values at species occurrence points
-# - join the raster values with metadata
-# - visualize the result
-###############################################################################
-
-#------------------------------------------------------------------------------
-# 1) LOAD REQUIRED PACKAGES
-#------------------------------------------------------------------------------
-
-# raster: to read and manipulate raster files
-# sf: to handle vector spatial data
-# rnaturalearth: to download country boundaries
-# ggplot2: to create graphs
-
+#Necessary packages
 library(raster)
 library(sf)
 library(rnaturalearth)
 library(ggplot2)
 
 #------------------------------------------------------------------------------
-# 2) LOAD THE ECOSYSTEM RASTER
+# LOAD THE ECOSYSTEM RASTER
 #------------------------------------------------------------------------------
 
 # Define the path to the GeoTIFF file
@@ -40,7 +22,7 @@ print(ecosystem_raster)
 #plot(ecosystem_raster, main = "Original Ecosystem Raster")
 
 #------------------------------------------------------------------------------
-# 3) LOAD THE BOUNDARY OF SWITZERLAND
+# LOAD THE BOUNDARY OF SWITZERLAND
 #------------------------------------------------------------------------------
 
 # Download the country boundary as an sf object
@@ -54,7 +36,7 @@ Switzerland <- ne_countries(
 plot(st_geometry(Switzerland), main = "Boundary of Switzerland")
 
 #------------------------------------------------------------------------------
-# 4) CROP AND MASK THE RASTER TO SWITZERLAND
+# CROP AND MASK THE RASTER TO SWITZERLAND
 #------------------------------------------------------------------------------
 
 # crop() keeps only the rectangular extent around Switzerland
@@ -67,14 +49,8 @@ ecosystem_switzerland <- mask(r2, Switzerland)
 plot(ecosystem_switzerland, main = "Ecosystem Raster Restricted to Switzerland")
 
 #------------------------------------------------------------------------------
-# 5) CONVERT SPECIES COORDINATES INTO SPATIAL POINTS
+# CONVERT SPECIES COORDINATES INTO SPATIAL POINTS
 #------------------------------------------------------------------------------
-
-# We assume that matrix_full is a data frame containing at least:
-# - longitude
-# - latitude
-# - species
-#
 
 # Convert the coordinate columns into spatial points
 # The CRS used here is WGS84, which is the standard geographic coordinate system
@@ -89,7 +65,7 @@ plot(ecosystem_switzerland, main = "Species Occurrences on Ecosystem Map")
 plot(spatial_points, add = TRUE, pch = 16, cex = 1.2)
 
 #------------------------------------------------------------------------------
-# 6) EXTRACT ECOSYSTEM VALUES AT EACH OCCURRENCE POINT
+# EXTRACT ECOSYSTEM VALUES AT EACH OCCURRENCE POINT
 #------------------------------------------------------------------------------
 
 # extract() retrieves the raster value at the location of each point
@@ -100,7 +76,7 @@ eco_values <- raster::extract(ecosystem_switzerland, spatial_points)
 head(eco_values)
 
 #------------------------------------------------------------------------------
-# 7) ADD THE EXTRACTED ECOSYSTEM VALUES TO THE ORIGINAL DATA FRAME
+# ADD THE EXTRACTED ECOSYSTEM VALUES TO THE ORIGINAL DATA FRAME
 #------------------------------------------------------------------------------
 
 # Create a new data frame by adding the extracted ecosystem values
@@ -153,3 +129,23 @@ p2 <- ggplot(matrix_full_eco, aes(x = Climate_Re, fill = species)) +
 
 # Display the plot
 print(p2)
+
+#This plot shows that Myotis myotis is found in the higher majority in Cool temparate moist climate and that
+#Myotis blythii is found only in Cool temperate mosit climate
+
+#Barplot of the observations of each species per landcover types
+p3 <- ggplot(matrix_full_eco, aes(x = Landcover, fill = species)) +
+  geom_bar(position = "dodge") +
+  labs(
+    title = "Count of Observations of Each Species by landcover",
+    x = "Lancover category",
+    y = "Number of observations"
+  ) +
+  theme_minimal()
+
+# Display the plot
+print(p3)
+
+colnames(matrix_full_eco_elev_clim_sat)
+#This plot shows that Myotis myotis is found at different land types but in majority in croplands.
+#Myotis blythii is also found in different types of landcover but more in forests. 

@@ -26,8 +26,9 @@ sf_use_s2(FALSE)
 # 2) USER PARAMETERS
 ###############################################################################
 
-### Myotis myotis ###############3
-# Species of interest
+### We gather occurence data of Myotis myotis and Myotis blythii in GBIF and iNaturalist. 
+### Here we created a loop for the data of the 2 species ###############
+
 vec_sp <- c("Myotis myotis", "Myotis blythii")
 
  matt_tot <- NULL
@@ -199,8 +200,8 @@ matrix_full_filtered <- matt_tot %>%
 
 # Check results
 head(matrix_full_filtered)
-table(matrix_full_filtered $source, useNA = "ifany")
-summary(matrix_full_filtered $date_obs)
+table(matrix_full_filtered$source, useNA = "ifany")
+summary(matrix_full_filtered$date_obs)
 
 #Removing of duplicates 
 

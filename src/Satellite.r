@@ -11,10 +11,10 @@
 #install.packages('luna', repos='https://rspatial.r-universe.dev')
 #install.packages("MODIStsp")
 #install.packages("remotes")
+
 library(remotes)
 #install_github("ropensci/MODIStsp")
 #install.packages("appeears")
-
 library(luna)
 library(MODIStsp)
 library(appeears)
@@ -23,12 +23,6 @@ library(sf)
 library(rnaturalearth)
 library(ggplot2)
 library(dplyr)
-
-# ------------------------------------------------------------------------------
-# Optional installation
-#install.packages(c("appeears", "terra", "sf", "rnaturalearth", "ggplot2", "dplyr"))
-# ------------------------------------------------------------------------------
-
 
 # ==============================================================================
 # 2. Explore available MODIS products
@@ -42,12 +36,6 @@ head(products)
 
 getProducts("^MOD|^MYD|^MCD")
 
-#MOD = Terra satellite products
-
-#MYD = Aqua satellite products
-
-#MCD = Combined products (Terra + Aqua)
-
 MODIStsp_get_prodlayers("M*D13Q1")
 
 product <- "MOD09A1" #surface spectral reflectance of Terra
@@ -58,7 +46,6 @@ productInfo(product)
 # IMPORTANT:
 # Look for the NDVI layer name in the printed list.
 # This is the layer you will select manually in AppEEARS.
-
 
 # ==============================================================================
 # 4. Export the Switzerland polygon for manual upload in AppEEARS
@@ -114,7 +101,7 @@ manual_tif <- list.files(
 print(manual_tif)
 
 # Read the raster
-ndvi_raster <- rast(manual_tif[18])
+ndvi_raster <- rast(manual_tif[2])
 
 #Note: manual_tif[8], 9 , 10  good quality
 # Check raster information
@@ -124,6 +111,24 @@ print(ndvi_raster)
 windows()
 plot(ndvi_raster, main = "Manually downloaded NDVI raster")
 
+
+###Mean value of NDVI data
+
+# Read ALL NDVI rasters
+ndvi_stack <- rast(manual_tif[2:61])
+
+# Compute mean NDVI
+ndvi_mean <- mean(ndvi_stack, na.rm = TRUE)
+
+# Apply scale factor (MODIS)
+ndvi_mean <- ndvi_mean * 0.0001
+
+# Use this as your raster
+ndvi_raster <- ndvi_mean
+
+#Quantile value of NDVI data 
+ndvi_quant <- quantile(ndvi_stack, probs=(0.9), na.rm = TRUE)
+ndvi_raster <- ndvi_quant
 
 # ==============================================================================
 # 6. Clip the raster to the exact Switzerland border
@@ -150,7 +155,7 @@ plot(switzerland_vect, add = TRUE, border = "black", lwd = 1)
 # and contains longitude and latitude columns.
 
 points_vect <- vect(
-  matrix_full_eco,
+  matrix_full_elev,
   geom = c("longitude", "latitude"),
   crs = "EPSG:4326"
 )
@@ -179,10 +184,16 @@ head(ndvi_values)
 # The first column returned by terra::extract() is usually the point ID
 # and the second column contains the extracted raster value.
 
-matrix_full_eco$NDVI <- ndvi_values[, 2]
+matrix_full_elev$NDVI <- ndvi_values[, 2]
 
 # Check the updated table
-head(matrix_full_eco)
+head(matrix_full_elev)
+
+
+#Rename the full matrix with all the data
+matrix_full_eco_elev_clim_sat <- matrix_full_elev
+
+head(matrix_full_eco_elev_clim_sat)
 
 
 # ==============================================================================
@@ -192,7 +203,7 @@ head(matrix_full_eco)
 windows()
 
 
-  ggplot(matrix_full_eco, aes(x = NDVI, fill = Climate_Re)) +
+  ggplot(matrix_full_elev, aes(x = NDVI, fill = Climate_Re)) +
   geom_density(alpha = 0.5, adjust = 3) +  # smoothed density curves
   labs(
     title = "NDVI Distribution by Climate",
@@ -200,3 +211,4 @@ windows()
     y = "Density"
   ) +
   theme_minimal()
+

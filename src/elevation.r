@@ -2,9 +2,8 @@
 # EXTRACTING ELEVATION DATA IN SWITZERLAND AND VISUALIZATION
 ################################################################################
 
-# =========================
-# 1. Load required packages
-# =========================
+#Load required packages
+
 library(sf)        # modern spatial data handling (simple features)
 library(elevatr)   # download elevation data
 library(raster)    # raster data manipulation (maps)
@@ -15,8 +14,9 @@ sf_use_s2(FALSE)
 
 
 # =========================
-# 2. Load Switzerland boundaries
+# Load Switzerland boundaries
 # =========================
+
 # Retrieve country borders from Natural Earth
 Switzerland <- ne_countries(
   scale = "medium",
@@ -26,8 +26,9 @@ Switzerland <- ne_countries(
 
 
 # =========================
-# 3. Download elevation data
+# Download elevation data
 # =========================
+
 # z controls resolution (higher = more detail but slower)
 elevation_switzerland <- get_elev_raster(Switzerland, z = 8)
 
@@ -37,11 +38,8 @@ plot(elevation_switzerland)
 
 
 # =========================
-# 4. Prepare sampling points
+# Prepare sampling points
 # =========================
-# We assume your dataset contains:
-# - longitude
-# - latitude
 
 # Convert coordinates into a spatial object (SpatialPoints format)
 spatial_points <- SpatialPoints(
@@ -51,20 +49,21 @@ spatial_points <- SpatialPoints(
 
 
 # =========================
-# 5. Extract elevation values
+# Extract elevation values
 # =========================
 # Extract raster values at each point location
 elevation <- raster::extract(elevation_switzerland, spatial_points)
 
 ##Good to plot to control
 # =========================
-# 6. Add elevation to the dataset
+# Add elevation to the dataset
 # =========================
+
 matrix_full_elev <- data.frame(
   matrix_full_eco,
   elevation = elevation
 )
-
+head(matrix_full_elev)
 
 # =========================
 # 7. Visualization: elevation distribution
@@ -96,3 +95,7 @@ p4 <- ggplot(matrix_full_elev, aes(x = elevation, fill = species)) +
 
 # Display the plot
 print(p4)
+
+#This plot provide interesting informations about elevation class shared by Myotis myotis and Myotis blythii. 
+#Myotis myotis is more present at low elevation and Myotis blythii more at higher elevation.
+#The higher density of the 2 species together is at approximatively 800-900m high. 
