@@ -33,9 +33,7 @@ Switzerland <- ne_countries(
 elevation_switzerland <- get_elev_raster(Switzerland, z = 8)
 
 # Quick visualization of the elevation raster
-windows()
 plot(elevation_switzerland)
-
 
 # =========================
 # Prepare sampling points
@@ -46,7 +44,6 @@ spatial_points <- SpatialPoints(
   coords = matrix_full_eco[, c("longitude", "latitude")],
   proj4string = CRS("+proj=longlat +datum=WGS84")
 )
-
 
 # =========================
 # Extract elevation values
@@ -59,18 +56,18 @@ elevation <- raster::extract(elevation_switzerland, spatial_points)
 # Add elevation to the dataset
 # =========================
 
-matrix_full_elev <- data.frame(
+matrix_full_el <- data.frame(
   matrix_full_eco,
   elevation = elevation
 )
-head(matrix_full_elev)
-
+nrow(matrix_full_el)
+head(matrix_full_el)
 # =========================
 # 7. Visualization: elevation distribution
 # =========================
 # Compare elevation distributions across climate categories
 
-p3 <- ggplot(matrix_full_elev, aes(x = elevation, fill = Climate_Re)) +
+p3 <- ggplot(matrix_full_el, aes(x = elevation, fill = Climate_Re)) +
   geom_density(alpha = 0.5, adjust = 3) +  # smoothed density curves
   labs(
     title = "Elevation Distribution by Climate",
@@ -84,7 +81,7 @@ print(p3)
 
 
 # Compare elevation distributions across bat species
-p4 <- ggplot(matrix_full_elev, aes(x = elevation, fill = species)) +
+elev_bat <- ggplot(matrix_full_el, aes(x = elevation, fill = species)) +
   geom_density(alpha = 0.5, adjust = 3) +  # smoothed density curves
   labs(
     title = "Elevation Distribution by species",
@@ -94,8 +91,6 @@ p4 <- ggplot(matrix_full_elev, aes(x = elevation, fill = species)) +
   theme_minimal()
 
 # Display the plot
-print(p4)
+print(elev_bat)
 
-#This plot provide interesting informations about elevation class shared by Myotis myotis and Myotis blythii. 
-#Myotis myotis is more present at low elevation and Myotis blythii more at higher elevation.
-#The higher density of the 2 species together is at approximatively 800-900m high. 
+

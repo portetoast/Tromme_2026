@@ -51,16 +51,14 @@ plot(ecosystem_switzerland, main = "Ecosystem Raster Restricted to Switzerland")
 #------------------------------------------------------------------------------
 # CONVERT SPECIES COORDINATES INTO SPATIAL POINTS
 #------------------------------------------------------------------------------
-
 # Convert the coordinate columns into spatial points
 # The CRS used here is WGS84, which is the standard geographic coordinate system
 spatial_points <- SpatialPoints(
-  coords = matrix_no_dup[, c("longitude", "latitude")],
+  coords = cur_data[, c("longitude", "latitude")],
   proj4string = CRS("+proj=longlat +datum=WGS84")
 )
-
+str(spatial_points)
 # Add the occurrence points on top of the ecosystem map
-windows()
 plot(ecosystem_switzerland, main = "Species Occurrences on Ecosystem Map")
 plot(spatial_points, add = TRUE, pch = 16, cex = 1.2)
 
@@ -74,16 +72,19 @@ eco_values <- raster::extract(ecosystem_switzerland, spatial_points)
 
 # Check the extracted values
 head(eco_values)
-
+length(eco_values)
 #------------------------------------------------------------------------------
 # ADD THE EXTRACTED ECOSYSTEM VALUES TO THE ORIGINAL DATA FRAME
 #------------------------------------------------------------------------------
 
 # Create a new data frame by adding the extracted ecosystem values
-matrix_full_eco <- data.frame(matrix_no_dup, eco_values)
+matrix_full_eco <- data.frame(cur_data, eco_values)
+
 
 # Inspect the result
 head(matrix_full_eco)
+nrow(matrix_full_eco)
+nrow(cur_data)
 
 #------------------------------------------------------------------------------
 # 8) LOAD THE ECOSYSTEM METADATA TABLE
@@ -111,6 +112,8 @@ matrix_full_eco <- merge(
 
 # Inspect the enriched table
 head(matrix_full_eco)
+nrow(matrix_full_eco)
+matrix_full_eco$species
 
 #------------------------------------------------------------------------------
 # 10) VISUALIZE THE NUMBER OF OBSERVATIONS PER CLIMATE CATEGORY AND SPECIES
@@ -130,8 +133,6 @@ p2 <- ggplot(matrix_full_eco, aes(x = Climate_Re, fill = species)) +
 # Display the plot
 print(p2)
 
-#This plot shows that Myotis myotis is found in the higher majority in Cool temparate moist climate and that
-#Myotis blythii is found only in Cool temperate mosit climate
 
 #Barplot of the observations of each species per landcover types
 p3 <- ggplot(matrix_full_eco, aes(x = Landcover, fill = species)) +
@@ -145,7 +146,3 @@ p3 <- ggplot(matrix_full_eco, aes(x = Landcover, fill = species)) +
 
 # Display the plot
 print(p3)
-
-colnames(matrix_full_eco_elev_clim_sat)
-#This plot shows that Myotis myotis is found at different land types but in majority in croplands.
-#Myotis blythii is also found in different types of landcover but more in forests. 

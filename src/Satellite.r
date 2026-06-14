@@ -108,23 +108,13 @@ ndvi_raster <- rast(manual_tif[2])
 print(ndvi_raster)
 
 # Plot the raster
-windows()
-plot(ndvi_raster, main = "Manually downloaded NDVI raster")
 
+plot(ndvi_raster, main = "Manually downloaded NDVI raster")
 
 ###Mean value of NDVI data
 
 # Read ALL NDVI rasters
 ndvi_stack <- rast(manual_tif[2:61])
-
-# Compute mean NDVI
-ndvi_mean <- mean(ndvi_stack, na.rm = TRUE)
-
-# Apply scale factor (MODIS)
-ndvi_mean <- ndvi_mean * 0.0001
-
-# Use this as your raster
-ndvi_raster <- ndvi_mean
 
 #Quantile value of NDVI data 
 ndvi_quant <- quantile(ndvi_stack, probs=(0.9), na.rm = TRUE)
@@ -143,7 +133,7 @@ ndvi_switzerland <- crop(ndvi_raster, switzerland_vect)
 ndvi_switzerland <- mask(ndvi_switzerland, switzerland_vect)
 
 # Plot the clipped raster
-windows()
+
 plot(ndvi_switzerland, main = "NDVI raster clipped to Switzerland")
 plot(switzerland_vect, add = TRUE, border = "black", lwd = 1)
 
@@ -155,7 +145,7 @@ plot(switzerland_vect, add = TRUE, border = "black", lwd = 1)
 # and contains longitude and latitude columns.
 
 points_vect <- vect(
-  matrix_full_elev,
+  matrix_full_el,
   geom = c("longitude", "latitude"),
   crs = "EPSG:4326"
 )
@@ -164,7 +154,7 @@ points_vect <- vect(
 points_vect <- project(points_vect, crs(ndvi_switzerland))
 
 # Plot the points on top of the raster
-windows()
+
 plot(ndvi_switzerland, main = "Sampling points over NDVI raster")
 plot(points_vect, add = TRUE, col = "red", pch = 16)
 
@@ -184,14 +174,14 @@ head(ndvi_values)
 # The first column returned by terra::extract() is usually the point ID
 # and the second column contains the extracted raster value.
 
-matrix_full_elev$NDVI <- ndvi_values[, 2]
+matrix_full_el$NDVI <- ndvi_values[, 2]
 
 # Check the updated table
-head(matrix_full_elev)
+head(matrix_full_el)
 
 
 #Rename the full matrix with all the data
-matrix_full_eco_elev_clim_sat <- matrix_full_elev
+matrix_full_eco_elev_clim_sat <- matrix_full_el
 
 head(matrix_full_eco_elev_clim_sat)
 
@@ -200,10 +190,7 @@ head(matrix_full_eco_elev_clim_sat)
 # 10. Simple control plot
 # ==============================================================================
 
-windows()
-
-
-  ggplot(matrix_full_elev, aes(x = NDVI, fill = Climate_Re)) +
+  ggplot(matrix_full_eco_elev_clim_sat, aes(x = NDVI, fill = Landcover )) +
   geom_density(alpha = 0.5, adjust = 3) +  # smoothed density curves
   labs(
     title = "NDVI Distribution by Climate",

@@ -72,7 +72,7 @@ landcover_raster <- rast(manual_tif[1])
 print(landcover_raster)
 
 # Plot the raster
-windows()
+
 plot(landcover_raster, main = "Manually downloaded landcover raster")
 
 switzerland_vect <- vect(switzerland_sf)
@@ -85,7 +85,7 @@ landcover_switzerland <- crop(landcover_raster, switzerland_vect)
 landcover_switzerland <- mask(landcover_switzerland, switzerland_vect)
 
 # Plot the clipped raster
-windows()
+
 plot(landcover_switzerland, main = "Landcover raster clipped to Switzerland")
 plot(switzerland_vect, add = TRUE, border = "black", lwd = 1)
 
@@ -99,7 +99,7 @@ points_vect <- vect(
 points_vect <- project(points_vect, crs(landcover_switzerland))
 
 # Plot the points on top of the raster
-windows()
+
 plot(landcover_switzerland, main = "Sampling points over Landcover raster")
 plot(points_vect, add = TRUE, col = "red", pch = 16)
 
@@ -147,10 +147,3 @@ pp <- ggplot(matrix_full_eco_elev_clim_sat, aes(x = LandCoverName, fill = specie
   theme_minimal()
 
   print(pp)
-
-  # Comparing this plot with the ecosystem plot of the distribution of the 2 species,
-  # We can see that this one splits landcover types in more different categories and that 
-  # Myotis myotis is still predominantly found in croplands, but also in a new categorie, the savanna, and
-  # Myotis blythii is more present in woody savannas and in second position the mixed forests.
-  # The main analysis will remain on the data from ecosystem raster, but it's interesting to see how much variations there are
-  # depending on the data you chose to work with.

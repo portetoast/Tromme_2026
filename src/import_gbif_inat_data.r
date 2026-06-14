@@ -41,7 +41,7 @@ gbif_limit <- 5000
 
 # Time filtering period
 date_start <- as.Date("2020-01-01")
-date_end   <- as.Date("2023-12-31")
+date_end   <- as.Date("2025-12-31")
 
 # Simplified geographic extent for Switzerland
 xmin <- 6
@@ -75,46 +75,15 @@ ggplot(data = Switzerland) +
 gbif_raw <- occ_data(
   scientificName = myspecies,
   hasCoordinate = TRUE,
-  limit = gbif_limit
+  limit = gbif_limit,
+  country = "CH"
 )
 
 # Extract the main data table
 gbif_occ <- gbif_raw$data
 
 # Quick inspection
-head(gbif_occ)
-names(gbif_occ)
 
-# Select occurrences located in Switzerland
-gbif_switzerland <- gbif_occ %>%
-  filter(country == "Switzerland")
-
-# Check number of records
-nrow(gbif_switzerland)
-
-# Quick base plot for checking
-plot(
-  gbif_switzerland$decimalLongitude,
-  gbif_switzerland$decimalLatitude,
-  pch = 16,
-  col = "darkgreen",
-  xlab = "Longitude",
-  ylab = "Latitude",
-  main = "GBIF occurrences in Switzerland"
-)
-
-# Map showing GBIF occurrences only
-windows()
-ggplot(data = Switzerland) +
-  geom_sf(fill = "grey95", color = "black") +
-  geom_point(
-    data = gbif_switzerland,
-    aes(x = decimalLongitude, y = decimalLatitude),
-    size = 3,
-    shape = 21,
-    fill = "darkgreen",
-    color = "black"
-  ) +
   theme_classic()
 
 ###############################################################################
@@ -124,10 +93,10 @@ ggplot(data = Switzerland) +
 # Keep only the useful columns
 # eventDate may contain date + time; as.Date() keeps only the date
 data_gbif <- data.frame(
-  species   = gbif_switzerland$species,
-  latitude  = gbif_switzerland$decimalLatitude,
-  longitude = gbif_switzerland$decimalLongitude,
-  date_obs  = as.Date(gbif_switzerland$eventDate),
+  species   = gbif_occ$species,
+  latitude  = gbif_occ$decimalLatitude,
+  longitude = gbif_occ$decimalLongitude,
+  date_obs  = as.Date(gbif_occ$eventDate),
   source    = "gbif"
 )
 
@@ -151,6 +120,7 @@ head(inat_raw)
 names(inat_raw)
 
 # Map showing iNaturalist occurrences only
+
 ggplot(data = Switzerland) +
   geom_sf(fill = "grey95", color = "black") +
   geom_point(
@@ -180,6 +150,7 @@ data_inat <- data.frame(
 # Check structure
 head(data_inat)
 str(data_inat)
+
 
 
 ###############################################################################
@@ -222,11 +193,12 @@ head(matrix_full_date)
 summary(matrix_full_date$date_obs)
 table(matrix_full_date$source)
 
+matrix_full_date
+
 ###############################################################################
 # 10) MAP OF COMBINED DATA
 ###############################################################################
 
-windows()
 ggplot(data = Switzerland) +
   geom_sf(fill = "grey95", color = "black") +
   geom_point(
@@ -244,11 +216,6 @@ ggplot(data = Switzerland) +
 ###############################################################################
 
 ################################################################################
-##### Crop the background using coordinates
-
-library(sf)
-
-sf_use_s2(FALSE)
 
 # Define the spatial extent
 extent(Switzerland)
@@ -261,7 +228,7 @@ Switzerland_crop <- st_crop(Switzerland, ext_Switzerland_cut)
 ggplot(data = Switzerland_crop) +
   geom_sf() +
   geom_point(
-    data = matrix_full,
+    data = matrix_full_date
     aes(x = longitude, y = latitude, fill = source),
     size = 4,
     shape = 23
@@ -273,14 +240,34 @@ ggplot(data = Switzerland_crop) +
 ##### Exclude points outside the specified spatial extent
 
 # Convert occurrences to sf object
-data_gbif_sf <- st_as_sf(matrix_full_filtered, coords = c("longitude", "latitude"), crs = 4326)
-
+data_gbif_sf <- st_as_sf(matrix_full_date, coords = c("longitude", "latitude"), crs = 4326)
+nrow(data_gbif_sf)
 # Convert cropped Switzerland polygon to sf
 Switzerland_crop_sf <- st_as_sf(Switzerland_crop)
 
 # Identify points located inside the spatial extent
-cur_data <- matrix_full_filtered[as.matrix(st_intersects(data_gbif_sf, Switzerland_crop_sf)),]
+cur_data <- matrix_full_date[as.matrix(st_intersects(data_gbif_sf, Switzerland)),]
 
+windows()
+ggplot(data = Switzerland) +
+  geom_sf(fill = "grey95", color = "black") +
+  geom_point(
+    data = matrix_full_date,
+    aes(x = longitude, y = latitude, fill = species),
+    size = 3,
+    shape = 21,
+    color = "black",
+    alpha = 0.8
+  ) +
+  theme_classic()
+
+ cur_data <- cur_data %>%
+  dplyr::select(-date_obs) %>%
+  distinct()
+ 
+
+head(cur_data)
+nrow(cur_data)
 # Plot cropped Switzerland map with filtered points
 ggplot(data = Switzerland_crop) +
   geom_sf() +
